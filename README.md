@@ -28,6 +28,12 @@ Everything runs locally, with two opt-in network exceptions: fetching a pasted
 pobb.in link, and cached poe.ninja price data (the report works fully without
 both).
 
+## Example report
+
+A level 100 Invoker build (Runes of Aldur league) run through PoEBuddy:
+
+![PoEBuddy report example](docs/screenshots/report-example.png)
+
 ## How it works
 
 ```
