@@ -1,0 +1,20 @@
+# --- Ingestion ---
+requests>=2.31
+mwparserfromhell>=0.6.5
+
+# --- Retrieval / indexing ---
+qdrant-client>=1.18         # embedded mode, no Docker needed
+sentence-transformers>=3.0  # cross-encoder reranker
+rank-bm25>=0.2.2
+
+# --- LLM runtime ---
+ollama>=0.3.0
+
+# --- Structured data ---
+duckdb>=1.0
+
+# --- App ---
+streamlit>=1.36
+pydantic>=2.7
+python-dotenv>=1.0
+pyyaml>=6.0

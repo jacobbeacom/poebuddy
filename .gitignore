@@ -1,0 +1,20 @@
+# environment
+.venv/
+.env
+
+# python
+__pycache__/
+*.pyc
+
+# OS / editor / session
+.DS_Store
+.claude/
+
+# generated data (rebuild with: python build_index.py)
+data/raw/*
+data/normalized/*
+data/qdrant/*
+data/*.duckdb
+data/bm25.pkl
+data/ninja_prices.json
+!data/**/.gitkeep
