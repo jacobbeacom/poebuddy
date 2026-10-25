@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Setup: create venv + install deps",
+      "type": "shell",
+      "command": "./setup.sh",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Build index: smoke (--limit 40)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python build_index.py --limit 40",
+      "options": { "env": { "PYTHONPATH": "${workspaceFolder}" } },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build index: full",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python build_index.py",
+      "options": { "env": { "PYTHONPATH": "${workspaceFolder}" } },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run UI (Streamlit)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/streamlit run app/report_ui.py",
+      "options": { "env": { "PYTHONPATH": "${workspaceFolder}" } },
+      "problemMatcher": []
+    },
+    {
+      "label": "Refresh poe.ninja price cache",
+      "type": "shell",
+      "command": "rm -f data/ninja_prices.json && ${workspaceFolder}/.venv/bin/python -c \"from app.ninja import get_prices; print(get_prices() and 'prices refreshed')\"",
+      "options": { "env": { "PYTHONPATH": "${workspaceFolder}" } },
+      "problemMatcher": []
+    }
+  ]
+}

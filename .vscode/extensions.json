@@ -1,0 +1,10 @@
+{
+  // VS Code prompts to install these the first time you open the folder.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+    "redhat.vscode-yaml"
+  ]
+}
