@@ -1,0 +1,125 @@
+# ============================================================
+# PoEBuddy configuration
+# Tuned defaults: Apple Silicon Mac + embedded Qdrant (no Docker)
+# ============================================================
+
+game:
+  # Used to filter retrieval and stamp records. Update after each patch.
+  current_version: "0.5.4"
+  name: "Path of Exile 2"
+
+wiki:
+  api_url: "https://www.poe2wiki.net/w/api.php"   # verify before bulk fetch
+  namespaces: [0]            # 0 = main content namespace
+  request_delay_seconds: 2.5 # be polite; do not hammer the server
+  max_retries: 5             # 429s back off separately (15s * 2^attempt)
+  batch_size: 50             # titles per API call
+  # Categories that mark obsolete / off-game content to drop or flag.
+  drop_category_keywords:
+    - "Path of Exile 1"
+    - "PoE1"
+    - "Removed"
+    - "Legacy"
+
+paths:
+  raw_dir: "data/raw"
+  normalized_dir: "data/normalized"
+  qdrant_path: "data/qdrant"       # embedded on-disk storage
+  duckdb_path: "data/poe2.duckdb"
+
+chunking:
+  target_tokens: 500        # aim 300-800
+  min_tokens: 120
+  overlap_tokens: 80        # prose overlap between neighbours
+  # rough chars-per-token used for cheap token estimates
+  chars_per_token: 4
+
+embedding:
+  # Ollama embedding model. Confirm the name exists in `ollama list`.
+  model: "nomic-embed-text"
+  dim: 768                  # nomic-embed-text output dimension
+  batch_size: 32
+
+retrieval:
+  dense_top_k: 30
+  bm25_top_k: 30
+  rrf_k: 60                 # reciprocal-rank-fusion constant
+  rerank_top_n: 20          # candidates fed to cross-encoder
+  final_top_k: 8            # chunks sent to the LLM
+  # cross-encoder relevance floor; candidates scoring below this are dropped
+  # instead of being sent to the LLM as "authoritative" evidence
+  min_rerank_score: 0.0
+  # cross-encoder reranker (runs locally on CPU/MPS via sentence-transformers)
+  reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+llm:
+  host: "http://localhost:11434"
+  chat_model: "llama3.1:8b-instruct-q4_K_M"   # confirm in `ollama list`
+  temperature: 0.2
+  num_ctx: 8192
+
+qdrant:
+  collection: "poe2_chunks"
+  distance: "Cosine"
+
+# ------------------------------------------------------------
+# Build-analysis benchmarks.
+# Game-rule values (res caps, penalties) come from the wiki and should
+# only change on patch. Tier thresholds (pool/max-hit/DPS) are community
+# heuristics for "endgame maps" pacing -- tune freely to taste.
+# ------------------------------------------------------------
+analysis:
+  endgame_level: 65          # char level at which endgame benchmarks apply
+  res_cap: 75                # default max elemental resistance (game rule)
+  res_overcap_buffer: 20     # uncapped headroom recommended vs curses/exposure
+  chaos_res_floor: 0         # below this -> flagged
+  chaos_res_severe: -30      # below this -> major severity
+  pool_tiers:                # life + energy shield (endgame heuristics)
+    low: 2500
+    ok: 3500
+    good: 5000
+  max_hit_tiers:             # PoB "maximum hit taken" (endgame heuristics)
+    low: 5000
+    good: 10000
+  spirit_waste_minor: 10     # unreserved spirit worth flagging
+  spirit_waste_major: 30
+  hit_chance_floor: 90       # attack builds below this accuracy get flagged
+  gem_level_lag:
+    char_level: 70           # from this character level...
+    min_gem_level: 18        # ...main skill gem below this is flagged
+  gem_quality_char_level: 75 # from this level, 0-quality main gem is flagged
+  dps_tiers:                 # main-skill combined DPS bands (heuristics)
+    campaign: 50000
+    early_maps: 250000
+    mid_maps: 1000000
+    endgame: 5000000
+
+report:
+  max_findings_in_summary: 6   # top issues shown in the executive summary
+  evidence_chunks: 6           # wiki chunks fed to the coach-notes LLM call
+  coach_notes: true            # default for the AI narrative section
+
+# poe.ninja live economy data (the second network exception besides pobb.in;
+# used only to attach market costs to recommendations -- reports work fully
+# without it).
+ninja:
+  enabled: true
+  league: "auto"               # "auto" = first indexed league from index-state
+  cache_hours: 6               # on-disk cache TTL (be polite; prices move slowly)
+
+efficiency:
+  move_speed_low: 1.10         # EffectiveMovementSpeedMod below this is flagged
+
+optimizer:
+  # weights for the group objective (see optimizer.py)
+  weights:
+    party_damage: 1.0
+    defensive_coverage: 0.8
+    effect_uptime: 0.6
+    role_redundancy: 0.4
+    playability: 0.5
+  penalties:
+    duplicate_nonstacking: 1.0
+    item_cost: 0.3
+    setup_time: 0.2
+    complexity: 0.2
